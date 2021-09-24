@@ -1,29 +1,40 @@
 import telebot
 import time
-from work import ForCount, CompareIntents, InvalidInt, ForForm
-from SortingPrices import Prices, ValueSearch
+from work import ForCount, CompareIntents, InvalidInt, ForForm, RefactorName
+from SortingPrices import Prices, ValueSearch, ItemSearch
 from Dictionary import Vocabulary
 
 bot = telebot.TeleBot("1912654268:AAH--YX6lzy1lHSwNPYlCggrLfcdckC2pdE")
 intents = {}
-messageLen = 100
+messageLen = 10
 proccess = 0
 
 #----- Additional Functions:
-def CollectingIntents(message, chain, element, enter=None):
+def CollectingIntents(message, chain, element, error=None, step=None):
     if (element != len(chain) - 1):
-        message.text = InvalidNumberIntent(message, chain, element)
+        if (step == "Command" or error == None):
+            message.text = InvalidNumberIntent(message, chain, element)
+        elif (error == "ItemName"):
+            message.text = CompareIntents(message.text, Vocabulary["ShortWeaponNames"], List=True)
         if (message.text != "command"):
             if (message.text != "wrong"):
                 if (len(chain) - 1 != element):
+                    if (error == "ItemName"):
+                        intents[chain[element][0]] = message.text
                     msg = bot.send_message(message.chat.id, chain[element + 1][1])
                 bot.register_next_step_handler(msg, CollectingIntents, chain, element + 1)
+            elif (error == "ItemName"):
+                msg = bot.reply_to(message, "Wrong Item Name,\nPlease Try Again...")
+                bot.register_next_step_handler(msg, CollectingIntents, chain, element, error="ItemName")
             else:
                 msg = bot.reply_to(message, "Input is Made in Numbers,\nPlease Try Again...")
                 bot.register_next_step_handler(msg, CollectingIntents, chain, element)
         else:
             msg = bot.send_message(message.chat.id, chain[element][1])
-            bot.register_next_step_handler(msg, CollectingIntents, chain, element)
+            if (error == None):
+                bot.register_next_step_handler(msg, CollectingIntents, chain, element)
+            elif (error == "ItemName"):
+                bot.register_next_step_handler(msg, CollectingIntents, chain, element, error="ItemName")
     else:
         PricesPrint(message)
 
@@ -43,30 +54,40 @@ def PricesPrint(message):
     print("PricesPrint")
     print("Intents:\n" + str(intents))
     if (InvalidInt(message.text) != "wrong"):
-        if (int(message.text) < messageLen):
-            CountToDisplay = int(message.text)
-            print("Count: " + str(CountToDisplay))
-            if (intents["param"] == "prices"):
-                bot.send_message(message.chat.id, "Printing Results...")
-                parametrDict = dict()
-                for i in Vocabulary["commands"]:
-                    if (i in intents.keys()):
-                        parametrDict[i] = intents[i]
-                    else:
-                        parametrDict[i] = None
-                parametrDict["CountToDisplay"] = CountToDisplay
-                print("Parametrs: " + str(parametrDict["CountToDisplay"]))
-                mainDict = ForCount(Prices(place=parametrDict["place"], sold=parametrDict["sold"], stability=parametrDict["stability"],
-                                           tendence=parametrDict["tendence"], top_price=parametrDict["top_price"]), parametrDict["CountToDisplay"])
-                #bot.send_message(message.chat.id, "Found Results: " + str(len(mainDict)))
-                bot.send_message(message.chat.id, ForForm(mainDict))
-            elif (intents["param"] == "value"):
-                bot.send_message(message.chat.id, "Printing Results...")
-                mainDict = ForCount(ValueSearch(Vocabulary["sortingParam"][str(intents["valueS"])], Vocabulary["True/False"][str(intents["reverse"])]), CountToDisplay)
-                bot.send_message(message.chat.id, ForForm(mainDict))
+        if (intents["param"] not in Vocabulary["InvalidParams"]):
+            if (int(message.text) < messageLen):
+                CountToDisplay = int(message.text)
+                print("Count: " + str(CountToDisplay))
+                if (intents["param"] == "prices"):
+                    bot.send_message(message.chat.id, "Printing Results...")
+                    parametrDict = dict()
+                    for i in Vocabulary["commands"]:
+                        if (i in intents.keys()):
+                            parametrDict[i] = intents[i]
+                        else:
+                            parametrDict[i] = None
+                    parametrDict["CountToDisplay"] = CountToDisplay
+                    print("Parametrs: " + str(parametrDict["CountToDisplay"]))
+                    mainDict = ForCount(Prices(place=parametrDict["place"], sold=parametrDict["sold"], stability=parametrDict["stability"],
+                                               tendence=parametrDict["tendence"], top_price=parametrDict["top_price"]), parametrDict["CountToDisplay"])
+                    #bot.send_message(message.chat.id, "Found Results: " + str(len(mainDict)))
+                    bot.send_message(message.chat.id, ForForm(mainDict))
+                elif (intents["param"] == "value"):
+                    bot.send_message(message.chat.id, "Printing Results...")
+                    mainDict = ForCount(ValueSearch(Vocabulary["sortingParam"][str(intents["valueS"])], Vocabulary["True/False"][str(intents["reverse"])]), CountToDisplay)
+                    bot.send_message(message.chat.id, ForForm(mainDict))
+            else:
+                msg = bot.reply_to(message, "Too Large Number for Telegram, Please Write Down Again:")
+                bot.register_next_step_handler(msg, PricesPrint)
         else:
-            msg = bot.reply_to(message, "Too Large Number for Telegram, Please Write Down Again:")
-            bot.register_next_step_handler(msg, PricesPrint)
+            if (intents["param"] == "search"):
+                print("Search")
+                intents["isST"] = int(message.text)
+                print(intents)
+                name = RefactorName(intents["ItemName"], intents["Float"], Vocabulary["True/False"][str(intents["isST"])])
+                bot.send_message(message.chat.id, "Printing Results...")
+                mainDict = ItemSearch(name)
+                bot.send_message(message.chat.id, ForForm(mainDict))
     else:
         msg = bot.reply_to(message, "Invalid Number, Please Write Down Again:")
         bot.register_next_step_handler(msg, PricesPrint)
@@ -92,6 +113,15 @@ def toMarket(message):
     chain = list([["sold", "Number of Sales in the Last 24 Hours:"], ["top_price", "Upper Price Bar:"], ["stability", "Stability Coefficient:"],
                   ["tendence", "Number of Price Change Over the Past 30 Days:"], ["CountToDisplay", "How many variations do you want to display?"]])
     CollectingIntents(message, chain, 0)
+
+@bot.message_handler(commands=['tosearch'])
+def toSearch(message):
+    print("tosearch")
+    intents.clear()
+    intents["param"] = "search"
+    msg = bot.send_message(message.chat.id, "Some Documentation...")
+    chain = list([["ItemName", "Item Name:"], ["Float", Vocabulary["floatText"]], ["isST", "Is StatTrak?\n 1 - True\n 0 - False"]])
+    CollectingIntents(message, chain, 0, error="ItemName", step="Command")
 
 @bot.message_handler(commands=['tosort'])
 def toSort(message):

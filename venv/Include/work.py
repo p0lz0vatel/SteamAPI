@@ -1,5 +1,5 @@
 import json
-from fuzzywuzzy import fuzz
+from fuzzywuzzy import fuzz, process
 
 key = "9593LueQz7Q5sfLzJ0FhJ41z872q8L7"
 
@@ -38,11 +38,19 @@ def ForForm(DictF):
     Dict = '\n'.join(strList)
     return Dict
 
-def CompareIntents(user_word, expected_word):
-    if (fuzz.ratio(user_word, expected_word) >= 60):
-        user_word = expected_word
+def CompareIntents(user_word, expected_word, List=None):
+    if (List == None):
+        if (fuzz.ratio(user_word, expected_word) >= 60):
+            user_word = expected_word
+        else:
+            user_word = "wrong"
     else:
-        user_word = "wrong"
+        closeWords = process.extractOne(user_word, expected_word)
+        print(closeWords)
+        if (closeWords[1] >= 60):
+            user_word = closeWords[0]
+        else:
+            user_word = "wrong"
     return user_word
 
 def InvalidInt(message):
@@ -51,6 +59,13 @@ def InvalidInt(message):
         return message
     except ValueError:
         return "wrong"
+
+def RefactorName(name, float, isST):
+    name = name.split()
+    print(name)
+    print(float)
+    print(isST)
+    return name
 
 
 

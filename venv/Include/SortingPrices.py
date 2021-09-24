@@ -83,6 +83,15 @@ def List_to_Dict(List):
         Dict.append(dict({item[0]: item[1]}))
     return Dict
 
+def Dict_to_List(Dict, Sold):
+    List = list()
+    for item in Dict["Names"]:
+        for key, value in item.items():
+            if (value["Market_Price"]["OnSale"] > 20 and value["specifications"]["tendence_30d"] != 0 and
+                    value["specifications"]["deviation_7d"] != 0):
+                List.append([key, value])
+    return List
+
 def FormedDict():
     DictMarket = FormPrices(getPriceMarket(), "market")
     DictSteam = FormPrices(getPriceSteam(), "steam")
@@ -93,11 +102,16 @@ def Prices(place, sold=None, stability=None, tendence=None, top_price=None):
     Dict = SortDict(FormedDict(), place, sold, stability, tendence, top_price)
     return Dict
 
-def ValueSearch(param, isReverse):
-    print(param)
-    print(isReverse)
+def ValueSearch(param, isReverse, Sold):
+    Dict = Dict_to_List(FormedDict(), Sold)
+    return List_to_Dict(sorted(Dict, key=lambda item: item[1]["specifications"][param], reverse=isReverse))
+
+def ItemSearch(name):
     Dict = FormedDict()
-    #return sorted(Dict, key=lambda item: item[1]["specifications"][param], reverse=isReverse)
+    for itemName in Dict["Names"].keys():
+        if (itemName == name):
+            return Dict["Names"][itemName]
+
 
 #print(Prices("market", sold=10, stability=None, tendence=None, top_price=10)[0])
 #print(Prices("steam", sold=10, stability=4, tendence=0.3, top_price=10)[0])
