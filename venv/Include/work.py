@@ -24,7 +24,7 @@ def ForForm(DictF):
                            '  Price: {market_price}\n'
                            '  On Sale: {on_sale}\n'
                            ' Steam:\n'
-                           '  Average for 7 Days: {avg_price_24}\n'
+                           '  Average Price: {avg_price_24}\n'
                            '  With Discount: {with_discount}\n'
                            '  Sold: {sold}\n'
                            ' Specifications:\n'
@@ -47,7 +47,7 @@ def CompareIntents(user_word, expected_word, List=None):
     else:
         closeWords = process.extractOne(user_word, expected_word)
         print(closeWords)
-        if (closeWords[1] >= 60):
+        if (closeWords[1] >= 80):
             user_word = closeWords[0]
         else:
             user_word = "wrong"
@@ -60,39 +60,13 @@ def InvalidInt(message):
     except ValueError:
         return "wrong"
 
-def RefactorName(name, float, isST):
-    name = name.split()
-    print(name)
-    print(float)
-    print(isST)
-    return name
+def RefactorName(name, float, tag):
+    if ("★" in name):
+        nameList = name.split(" ", 1)
+        name = nameList[1]
+        tag = nameList[0] + " " + tag
+    nameR = str(f"{tag}{name}{float}")
+    return nameR
 
-
-
-#mainDict("Bowie Knife | Marble Fade (Factory New)")
-#mainDict("Bowie Knife | Slaughter (Factory New)")
-#mainDict("FAMAn | Commemoratian (Factory New)")
-#mainDict("Glocl-18 | Neo-Noir (Well-Worn)")
-#mainDict("AWP | Atheris (Minimal Wear)")
-# AWP | Fever Dream
-# Bowie Knife | Marble Fade
-#from libs import Get, SearchItems, Sorting, Item_Search, Printing
-'''
-def mainDict(item_Name):
-
-    #print(item_Name)
-    Items = SearchItems(key, item_Name)
-
-    if (len(Items) > 0):
-        #ForCount(Items, 5)
-        #print(Item_Search(Items, 1766246057))
-        #Items = Printing(Items, 5)
-        #print(Items)
-        #print(Printing(Sorting(Items, str(input("Element: "))), 5))
-        return Items
-    else:
-        return "Wrong Request"
-        
-def ForSort(Dict, element):
-    return Sorting(Dict, element)
-'''
+# print(RefactorName("★ Desert Eagle | Directive", "Factory New", "StatTrak "))
+# print("LOX")

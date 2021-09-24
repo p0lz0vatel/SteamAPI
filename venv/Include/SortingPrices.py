@@ -35,10 +35,10 @@ def mainDict(DictM, DictS):
         if (item in DictS["Names"].keys()):
             try:
                 Dict["Names"].append(dict({item: dict(Market_Price=dict(Price=float(DictM["Names"][item]["price"]), OnSale=int(DictM["Names"][item]["volume"])),
-                                                Steam_Price=dict(Avg_Price_24=DictS["Names"][item]['7_days']["average"], with_discount=round(DictS["Names"][item]['7_days']["average"] * 0.87, 3),
-                                                                 Sold=int(DictS["Names"][item]["7_days"]["sold"])), specifications=dict(
-                                                      tendence_30d=round(DictS["Names"][item]['7_days']["average"] - DictS["Names"][item]["30_days"]["average"], 2), deviation_7d=float(DictS["Names"][item]["7_days"]["standard_deviation"]),
-                                                        price_difference=round(DictS["Names"][item]['7_days']["average"] * 0.87 - float(DictM["Names"][item]["price"]), 3)))}))
+                                                Steam_Price=dict(Avg_Price_24=DictS["Names"][item]['24_hours']["average"], with_discount=round(DictS["Names"][item]['24_hours']["average"] * 0.87, 3),
+                                                                 Sold=int(DictS["Names"][item]["24_hours"]["sold"])), specifications=dict(
+                                                      tendence_30d=round(DictS["Names"][item]['24_hours']["average"] - DictS["Names"][item]["30_days"]["average"], 2), deviation_7d=float(DictS["Names"][item]["7_days"]["standard_deviation"]),
+                                                        price_difference=round(DictS["Names"][item]['24_hours']["average"] * 0.87 - float(DictM["Names"][item]["price"]), 3)))}))
             except KeyError:
                 pass
             except ValueError:
@@ -107,10 +107,11 @@ def ValueSearch(param, isReverse, Sold):
     return List_to_Dict(sorted(Dict, key=lambda item: item[1]["specifications"][param], reverse=isReverse))
 
 def ItemSearch(name):
-    Dict = FormedDict()
-    for itemName in Dict["Names"].keys():
-        if (itemName == name):
-            return Dict["Names"][itemName]
+    print(name)
+    # Dict = FormedDict()
+    # for itemName in Dict["Names"].keys():
+    #     if (itemName == name):
+    #         return Dict["Names"][itemName]
 
 
 #print(Prices("market", sold=10, stability=None, tendence=None, top_price=10)[0])

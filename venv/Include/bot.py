@@ -10,7 +10,7 @@ messageLen = 10
 proccess = 0
 
 #----- Additional Functions:
-def CollectingIntents(message, chain, element, error=None, step=None):
+def CollectingIntents(message, chain, element, error=None, step=None, extra=None):
     if (element != len(chain) - 1):
         if (step == "Command" or error == None):
             message.text = InvalidNumberIntent(message, chain, element)
@@ -18,11 +18,23 @@ def CollectingIntents(message, chain, element, error=None, step=None):
             message.text = CompareIntents(message.text, Vocabulary["ShortWeaponNames"], List=True)
         if (message.text != "command"):
             if (message.text != "wrong"):
+                step = 1
                 if (len(chain) - 1 != element):
                     if (error == "ItemName"):
                         intents[chain[element][0]] = message.text
-                    msg = bot.send_message(message.chat.id, chain[element + 1][1])
-                bot.register_next_step_handler(msg, CollectingIntents, chain, element + 1)
+                        for weapon in Vocabulary["isWeapon"]:
+                            if (weapon in message.text):
+                                step = "success"
+                        if (step != "success"):
+                            step = len(chain) - 1 - element
+                        else:
+                            step = 1
+                    if (step == 1):
+                        msg = bot.send_message(message.chat.id, chain[element + 1][1])
+                if (step == 1):
+                    bot.register_next_step_handler(msg, CollectingIntents, chain, element + step)
+                else:
+                    CollectingIntents(message, chain, element=step, extra="Break")
             elif (error == "ItemName"):
                 msg = bot.reply_to(message, "Wrong Item Name,\nPlease Try Again...")
                 bot.register_next_step_handler(msg, CollectingIntents, chain, element, error="ItemName")
@@ -36,7 +48,7 @@ def CollectingIntents(message, chain, element, error=None, step=None):
             elif (error == "ItemName"):
                 bot.register_next_step_handler(msg, CollectingIntents, chain, element, error="ItemName")
     else:
-        PricesPrint(message)
+        PricesPrint(message, extra=extra)
 
 def InvalidNumberIntent(message, chain, element):
     if (message.text not in Vocabulary["bot_commands"]):
@@ -50,10 +62,10 @@ def InvalidNumberIntent(message, chain, element):
     else:
         return "command"
 
-def PricesPrint(message):
+def PricesPrint(message, extra=None):
     print("PricesPrint")
     print("Intents:\n" + str(intents))
-    if (InvalidInt(message.text) != "wrong"):
+    if (InvalidInt(message.text) != "wrong" or extra != None):
         if (intents["param"] not in Vocabulary["InvalidParams"]):
             if (int(message.text) < messageLen):
                 CountToDisplay = int(message.text)
@@ -82,12 +94,15 @@ def PricesPrint(message):
         else:
             if (intents["param"] == "search"):
                 print("Search")
-                intents["isST"] = int(message.text)
                 print(intents)
-                name = RefactorName(intents["ItemName"], intents["Float"], Vocabulary["True/False"][str(intents["isST"])])
+                if (extra == None):
+                    intents["isST"] = int(message.text)
+                    name = RefactorName(intents["ItemName"], Vocabulary["floatR"][intents["Float"] - 1], Vocabulary["isST"][str(intents["isST"])])
+                else:
+                    name = RefactorName(intents["ItemName"], "", "")
                 bot.send_message(message.chat.id, "Printing Results...")
                 mainDict = ItemSearch(name)
-                bot.send_message(message.chat.id, ForForm(mainDict))
+                #bot.send_message(message.chat.id, ForForm(mainDict))
     else:
         msg = bot.reply_to(message, "Invalid Number, Please Write Down Again:")
         bot.register_next_step_handler(msg, PricesPrint)
