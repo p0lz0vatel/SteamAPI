@@ -19,6 +19,10 @@ def ForForm(DictF):
     for i in Dict:
         for key in i.keys():
             loc_Dict = i[key]
+            if (loc_Dict["specifications"]["deviation_7d"] == 0):
+                deviation = "Wrong Parse"
+            else:
+                deviation = loc_Dict["specifications"]["deviation_7d"]
             strList.append('Name: {skin_name}\n'
                            ' Market:\n'
                            '  Price: {market_price}\n'
@@ -29,12 +33,12 @@ def ForForm(DictF):
                            '  Sold: {sold}\n'
                            ' Specifications:\n'
                            '  Tendence for 30 days: {tendence_30d}\n'
-                           '  Deviation for 7 days: {deviation_7d}\n'
+                           '  Item Deviation: {deviation_7d}\n'
                            '  Price difference: {price_difference}\n'
                            '-----'.format(
                 skin_name=key, market_price=loc_Dict["Market_Price"]["Price"], on_sale=loc_Dict["Market_Price"]["OnSale"],
                 avg_price_24=loc_Dict["Steam_Price"]["Avg_Price_24"], with_discount=loc_Dict["Steam_Price"]["with_discount"], sold=loc_Dict["Steam_Price"]["Sold"],
-                tendence_30d=loc_Dict["specifications"]["tendence_30d"], deviation_7d=loc_Dict["specifications"]["deviation_7d"], price_difference=abs(loc_Dict["specifications"]["price_difference"])))
+                tendence_30d=loc_Dict["specifications"]["tendence_30d"], deviation_7d=deviation, price_difference=abs(loc_Dict["specifications"]["price_difference"])))
     Dict = '\n'.join(strList)
     return Dict
 

@@ -1,9 +1,11 @@
 Vocabulary = {
     "commands": ("place", "sold", "stability", "tendence", "top_price"),
     "floatText": ("1 - Factory New\n2 - Minimal Wear\n3 - Field-Tested\n4 - Well-Worn\n5 - Battle-Scarred"),
+    "funcInfo": ("Here is the documentation about the bot function ...\n"
+                 "To select a specific one, enter a characteristic number"),
     "floatR": ("(Factory New)", "(Minimal Wear)", "(Field-Tested)", "(Well-Worn)", "(Battle-Scarred)"),
     "markets": ("Steam", "CsGo Market"),
-    "bot_commands": ("/tosteam", "/tomarket", "/tosort", "/tosearch"),
+    "bot_commands": ("/tosteam", "/tomarket", "/tosort", "/tosearch", "/start", "/help"),
     "isST": {"0": '', "1": "StatTrak™ "},
     "True/False": {"1": True, "0": False},
     "sortingParam": {"1": "tendence_30d", "2": "deviation_7d", "3": "price_difference"},

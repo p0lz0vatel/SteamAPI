@@ -34,10 +34,14 @@ def mainDict(DictM, DictS):
     for item in DictM["Names"].keys():
         if (item in DictS["Names"].keys()):
             try:
+                deviationKey = "all_time"
+                for key in DictS["Names"][item].keys():
+                    if (float(DictS["Names"][item][key]["standard_deviation"]) != 0):
+                        deviationKey = key
                 Dict["Names"].append(dict({item: dict(Market_Price=dict(Price=float(DictM["Names"][item]["price"]), OnSale=int(DictM["Names"][item]["volume"])),
                                                 Steam_Price=dict(Avg_Price_24=DictS["Names"][item]['24_hours']["average"], with_discount=round(DictS["Names"][item]['24_hours']["average"] * 0.87, 3),
                                                                  Sold=int(DictS["Names"][item]["24_hours"]["sold"])), specifications=dict(
-                                                      tendence_30d=round(DictS["Names"][item]['24_hours']["average"] - DictS["Names"][item]["30_days"]["average"], 2), deviation_7d=float(DictS["Names"][item]["7_days"]["standard_deviation"]),
+                                                      tendence_30d=round(DictS["Names"][item]['24_hours']["average"] - DictS["Names"][item]["30_days"]["average"], 3), deviation_7d=float(DictS["Names"][item][deviationKey]["standard_deviation"]),
                                                         price_difference=round(DictS["Names"][item]['24_hours']["average"] * 0.87 - float(DictM["Names"][item]["price"]), 3)))}))
             except KeyError:
                 pass
@@ -83,12 +87,12 @@ def List_to_Dict(List):
         Dict.append(dict({item[0]: item[1]}))
     return Dict
 
-def Dict_to_List(Dict, Sold):
+def Dict_to_List(Dict, Sold=None, noExculisions=None):
     List = list()
     for item in Dict["Names"]:
         for key, value in item.items():
             if (value["Market_Price"]["OnSale"] > 20 and value["specifications"]["tendence_30d"] != 0 and
-                    value["specifications"]["deviation_7d"] != 0):
+                    value["specifications"]["deviation_7d"] != 0 or noExculisions == True):
                 List.append([key, value])
     return List
 
@@ -103,15 +107,22 @@ def Prices(place, sold=None, stability=None, tendence=None, top_price=None):
     return Dict
 
 def ValueSearch(param, isReverse, Sold):
-    Dict = Dict_to_List(FormedDict(), Sold)
+    Dict = Dict_to_List(FormedDict(), Sold=Sold)
     return List_to_Dict(sorted(Dict, key=lambda item: item[1]["specifications"][param], reverse=isReverse))
 
 def ItemSearch(name):
     print(name)
-    # Dict = FormedDict()
-    # for itemName in Dict["Names"].keys():
-    #     if (itemName == name):
-    #         return Dict["Names"][itemName]
+    result = None
+    Dict = Dict_to_List(FormedDict(), noExculisions=True)
+    for itemName in Dict:
+        if (name == itemName[0]):
+            result = itemName
+    if (result != None):
+        List = list()
+        List.append(dict({result[0]: result[1]}))
+        return List
+    else:
+        return "wrong"
 
 
 #print(Prices("market", sold=10, stability=None, tendence=None, top_price=10)[0])
