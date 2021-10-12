@@ -102,13 +102,17 @@ def FormedDict():
     ConDict = mainDict(DictMarket, DictSteam)
     return ConDict
 
-def Prices(place, sold=None, stability=None, tendence=None, top_price=None):
-    Dict = SortDict(FormedDict(), place, sold, stability, tendence, top_price)
+def Prices(place, sold=None, stability=None, tendence=None, top_price=None, extra=None):
+    if (extra == False):
+        Dict = SortDict(FormedDict(), place, sold, stability, tendence, top_price)
+    else:
+        # Dict =
+        print("Extra")
     return Dict
 
-def ValueSearch(param, isReverse, Sold):
+def ValueSearch(isReverse):
     Dict = Dict_to_List(FormedDict(), Sold=Sold)
-    return List_to_Dict(sorted(Dict, key=lambda item: item[1]["specifications"][param], reverse=isReverse))
+    return List_to_Dict(sorted(Dict, key=lambda item: item[1]["specifications"]["price_difference"], reverse=isReverse))
 
 def ItemSearch(name):
     print(name)

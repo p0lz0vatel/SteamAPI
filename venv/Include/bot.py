@@ -15,23 +15,28 @@ def CollectingIntents(message, chain, element, error=None, step=None, extra=None
     if (len(chain[element]) > 2):
         maxIntent = chain[element][2]
     if (element != len(chain) - 1):
-        if (step == "Command" or error == None):
-            print(len(chain[element]))
-            print(maxIntent)
+        if (step == "Command" or error == None or error == "extra"):
             message.text = InvalidNumberIntent(message, chain, element, maxIntent)
-            print(message.text)
         elif (error == "ItemName"):
             message.text = CompareIntents(message.text, Vocabulary["ShortWeaponNames"], List=True)
         if (message.text != "command"):
             if (message.text != "wrong" and message.text != "large"):
                 step = 1
                 if (len(chain) - 1 != element):
+                    print(error)
                     if (error == "ItemName"):
                         intents[chain[element][0]] = message.text
                         for weapon in Vocabulary["isWeapon"]:
                             if (weapon in message.text):
                                 step = "success"
                         if (step != "success"):
+                            step = len(chain) - 1 - element
+                        else:
+                            step = 1
+                    elif (error == "extra"):
+                        intents[chain[element][0]] = int(message.text)
+                        print(intents[chain[element][0]])
+                        if (intents[chain[element][0]] == 1):
                             step = len(chain) - 1 - element
                         else:
                             step = 1
@@ -56,6 +61,11 @@ def CollectingIntents(message, chain, element, error=None, step=None, extra=None
                 bot.register_next_step_handler(msg, CollectingIntents, chain, element)
             elif (error == "ItemName"):
                 bot.register_next_step_handler(msg, CollectingIntents, chain, element, error="ItemName")
+            elif (error == "extra"):
+                if (element == 0):
+                    bot.register_next_step_handler(msg, CollectingIntents, chain, element, error="extra")
+                else:
+                    bot.register_next_step_handler(msg, CollectingIntents, chain, element)
     else:
         PricesPrint(message, extra=extra)
 
@@ -77,6 +87,7 @@ def InvalidNumberIntent(message, chain, element, maxIntent):
 def PricesPrint(message, extra=None):
     print("PricesPrint")
     print("Intents:\n" + str(intents))
+    #print(f"With in {proccess} attemps")
     if (InvalidInt(message.text) != "wrong" or extra != None):
         if (intents["param"] not in Vocabulary["InvalidParams"]):
             if (int(message.text) < messageLen):
@@ -92,8 +103,9 @@ def PricesPrint(message, extra=None):
                             parametrDict[i] = None
                     parametrDict["CountToDisplay"] = CountToDisplay
                     print("Parametrs: " + str(parametrDict["CountToDisplay"]))
+                    print(parametrDict)
                     mainDict = Prices(place=parametrDict["place"], sold=parametrDict["sold"], stability=parametrDict["stability"],
-                                               tendence=parametrDict["tendence"], top_price=parametrDict["top_price"])
+                                        tendence=parametrDict["tendence"], top_price=parametrDict["top_price"], extra=Vocabulary["True/False"][str(parametrDict["extra"])])
                     if (len(mainDict) >= parametrDict["CountToDisplay"]):
                         bot.send_message(message.chat.id, "Found Results: " + str(len(mainDict)) + "\nPrinted: " + str(parametrDict["CountToDisplay"]))
                         bot.send_message(message.chat.id, ForForm(ForCount(mainDict, parametrDict["CountToDisplay"])))
@@ -145,9 +157,9 @@ def toMarket(message):
     intents["place"] = "steam"
     intents["param"] = "prices"
     msg = bot.send_message(message.chat.id, "Some Documentation...")
-    chain = list([["sold", "Number of Sales in the Last 24 Hours:"], ["top_price", "Upper Price Bar:"], ["stability", "Stability Coefficient:"],
+    chain = list([["extra", "Params?\n 1 - Yes\n 0 - No", 2], ["sold", "Number of Sales in the Last 24 Hours:"], ["top_price", "Upper Price Bar:"], ["stability", "Stability Coefficient:"],
                   ["tendence", "Number of Price Change Over the Past 30 Days:"], ["CountToDisplay", "How many variations do you want to display?"]])
-    CollectingIntents(message, chain, 0)
+    CollectingIntents(message, chain, 0, error="extra")
 
 @bot.message_handler(commands=['tosearch'])
 def toSearch(message):
@@ -164,7 +176,7 @@ def toSort(message):
     intents.clear()
     intents["param"] = "value"
     msg = bot.send_message(message.chat.id, "Some Documentation...")
-    chain = list([["valueS", "Parameter from the Presented:"], ["reverse", "Is Reversed?\n 1 - True\n 0 - False"], ["CountToDisplay", "How many variations do you want to display?"]])
+    chain = list([["reverse", "Is Reversed?\n 1 - True\n 0 - False"], ["CountToDisplay", "How many variations do you want to display?"]])
     CollectingIntents(message, chain, 0)
 
 @bot.message_handler(commands=['start', 'help'])
